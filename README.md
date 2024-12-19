@@ -7,7 +7,7 @@ This is a Node.js SDK for interacting with the Navigable AI API, enabling easy i
 Install the package via npm:
 
 ```bash
-npm install navigableai-server
+npm install navigableai-node
 ```
 
 ## Basic Instantiation
@@ -15,7 +15,7 @@ npm install navigableai-server
 To use the SDK, you first need to instantiate the `NavigableAI` class with an API key. Optionally, you can also provide a shared secret key for secure message verification.
 
 ```typescript
-const { NavigableAI } = require("navigableai-server");
+const { NavigableAI } = require("navigableai-node");
 
 const apiKey = "YOUR_API_KEY";
 const sharedSecretKey = "YOUR_SHARED_SECRET_KEY"; // Optional, but recommended for added security
@@ -31,7 +31,7 @@ Once the `NavigableAI` instance is created, you can use it to send messages, ret
 
 ```js
 const express = require("express");
-const { NavigableAI } = require("navigableai-server");
+const { NavigableAI } = require("navigableai-node");
 
 const app = express();
 const port = 3000;
