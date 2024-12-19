@@ -1,0 +1,259 @@
+# Navigable AI Node SDK
+
+This is a Node.js SDK for interacting with the Navigable AI API, enabling easy integration for chat functionality and message management, including sending messages, retrieving previous conversations, and handling custom actions.
+
+## Installation
+
+Install the package via npm:
+
+```bash
+npm install navigableai-server
+```
+
+## Basic Instantiation
+
+To use the SDK, you first need to instantiate the `NavigableAI` class with an API key. Optionally, you can also provide a shared secret key for secure message verification.
+
+```typescript
+const { NavigableAI } = require("navigableai-server");
+
+const apiKey = "YOUR_API_KEY";
+const sharedSecretKey = "YOUR_SHARED_SECRET_KEY"; // Optional, but recommended for added security
+
+const navigableAI = new NavigableAI(apiKey, sharedSecretKey);
+```
+
+## Usage
+
+Once the `NavigableAI` instance is created, you can use it to send messages, retrieve conversations, or handle custom actions like contacting support.
+
+### Example: Basic Express Server Setup
+
+```js
+const express = require("express");
+const { NavigableAI } = require("navigableai-server");
+
+const app = express();
+const port = 3000;
+
+// Initialize the Navigable AI client
+const apiKey = "YOUR_API_KEY";
+const sharedSecretKey = "YOUR_SHARED_SECRET_KEY"; // Optional, but recommended for added security
+const navigableAI = new NavigableAI(apiKey, sharedSecretKey);
+
+// Action Handler: Contact Support
+navigableAI.registerActionHandler("Contact Support", (uniqueId, context) => {
+  console.log(`User with ID ${uniqueId} needs support. Context:`, context);
+
+  // If passing the response object as the context, you can use it to redirect to a different page. Useful for server side routing
+  // context.redirect('/support');
+});
+
+// Endpoint to send a message to Navigable AI
+app.post("/assistant/send-message", express.json(), async (req, res) => {
+  const { message, identifier, markdown, currentPage, signature } = req.body;
+
+  try {
+    const response = await navigableAI.sendMessage(message, {
+      identifier,
+      new: req.body.new,
+      markdown,
+      currentPage,
+      signature,
+    });
+
+    // Handle action if present
+    const action = response?.data?.action;
+    if (action && navigableAI.actions[action]) {
+      navigableAI.actions[action](identifier, res); // Call the registered action handler
+    }
+
+    res.json(response);
+  } catch (err) {
+    res.status(500).json({ error: "Error sending message" });
+  }
+});
+
+// Endpoint to get the last 20 messages in a conversation
+app.get("/assistant/get-messages", async (req, res) => {
+  const { identifier } = req.query;
+
+  try {
+    const messages = await navigableAI.getMessages(String(identifier));
+    res.json(messages);
+  } catch (err) {
+    res.status(500).json({ error: "Error retrieving messages" });
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
+});
+```
+
+### Description of Functions
+
+- **`sendMessage(message: string, options?: IChatSendMessageOptions)`**:
+
+  - Sends a message to Navigable AI and gets a response.
+  - The `options` parameter is optional and can include:
+    - `identifier`: The unique user identifier (optional).
+    - `new`: Start a new conversation (optional).
+    - `markdown`: Flag to respond in markdown format (optional).
+    - `currentPage`: The current page the user is on (optional).
+    - `signature`: The signature of the request if using a shared secret key (optional).
+
+- **`getMessages(identifier: string)`**:
+
+  - Retrieves the last 20 messages from the conversation for a specific user.
+
+- **`registerActionHandler(actionName: string, handler: IActionHandler)`**:
+
+  - Registers an action handler function that will run when the assistant suggests an action.
+  - The handler function receives a unique identifier and context as arguments.
+
+- **`verifyRequestSignature(message: string, signature: string)`**:
+  - Verifies the signature of a request when using a shared secret key (this is a private method and is used internally). Only the signature needs to be passed as part of the options to the `sendMessage` function.
+
+### Action Handler Example
+
+The action handler is a custom function you define to process specific actions that Navigable AI may suggest. For example, if the assistant suggests that the user contact support, the action handler for "Contact Support" will be triggered.
+
+```typescript
+navigableAI.registerActionHandler("Contact Support", (uniqueId, context) => {
+  console.log(
+    `User ${uniqueId} requested support. Context: ${JSON.stringify(context)}`
+  );
+  // Implement support functionality, such as logging the issue or triggering email notifications.
+});
+```
+
+When sending a message, the assistant may respond with an action (e.g., "Contact Support"). After receiving the response from the API, check if there is an action and call the registered handler if the action exists:
+
+```typescript
+const response = await navigableAI.sendMessage(message, {
+  identifier,
+  new: req.body.new,
+  markdown,
+  currentPage,
+  signature,
+});
+
+// If an action exists in the response, handle it
+const action = response?.data?.action;
+if (action && navigableAI.actions[action]) {
+  navigableAI.actions[action](identifier, res); // Handle action
+}
+```
+
+### API Configuration
+
+- **API_KEY**: This key is required to authenticate your requests to Navigable AI. You can obtain it by signing up for the API and creating a new model.
+- **Shared Secret Key**: If you wish to verify the integrity of the requests, you can provide a shared secret key. This will require you to send a valid signature in each request, which the server will verify using the key. The key should be a random string, ensure it is the same on the server and client.
+
+### Example Request
+
+Here's an example of how you might send a message from a user:
+
+```json
+{
+  "message": "Hello, I need help with my account",
+  "identifier": "user123",
+  "new": true,
+  "markdown": false,
+  "currentPage": "Dashboard",
+  "signature": "<signature>"
+}
+```
+
+### Sample Response
+
+A successful response from the API will look like this:
+
+```json
+{
+  "statusCode": 200,
+  "success": true,
+  "message": "Message sent successfully",
+  "data": {
+    "assistantMessage": "How can I assist you with your account?",
+    "action": null,
+    "identifier": "user123"
+  }
+}
+```
+
+If there is an error, the response will contain the error details:
+
+```json
+{
+  "statusCode": <error status code>,
+  "success": false,
+  "message": "<error message>",
+  "errors": {
+    "message": "The message cannot be empty"
+  }
+}
+```
+
+For a more detailed explanation of the responses, refer to the [Navigable AI API Documentation](https://www.navigable.ai/docs/category/api).
+
+## API Reference
+
+For more detailed usage, refer to the following types:
+
+### `IChatSendMessageOptions`
+
+```ts
+interface IChatSendMessageOptions {
+  identifier?: string;
+  new?: boolean;
+  markdown?: boolean;
+  currentPage?: string;
+  signature?: string;
+}
+```
+
+### `IChatSendMessageResponse`
+
+```ts
+interface IChatSendMessageResponse {
+  statusCode: number;
+  success: boolean;
+  message: string;
+  errors?: Record<string, string>;
+  data: {
+    assistantMessage: string;
+    action: string | null;
+    identifier: string;
+  };
+}
+```
+
+### `IChatGetMessageResponse`
+
+```ts
+interface IChatGetMessageResponse {
+  statusCode: number;
+  success: boolean;
+  message: string;
+  errors?: Record<string, string>;
+  data: {
+    sender: "USER" | "ASSISTANT";
+    content: string;
+    new: boolean;
+    createdAt: Date;
+    action: string | null;
+  }[];
+}
+```
+
+### License
+
+This project is licensed under the ISC License.
+
+---
+
+Feel free to fork and modify the SDK according to your needs!
+
+---

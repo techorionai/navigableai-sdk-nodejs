@@ -5,13 +5,15 @@ import { IChatGetMessageResponse, IChatSendMessageOptions, IChatSendMessageRespo
  */
 export default class NavigableAI {
     private apiKey;
+    private sharedSecretKey;
     private actionHandlers;
     /**
      * Create an instance of NavigableAIClient for a single model
      *
      * @param apiKey API key for a model in Navigable AI
+     * @param sharedSecretKey Shared secret key between your server and client. Use any random string, ensure it is the same on the server and client. If provided, each request will verify the signature coming from the client.
      */
-    constructor(apiKey: string);
+    constructor(apiKey: string, sharedSecretKey?: string);
     /**
      * Get the last 20 messages in the last conversation by your user's unique identifier
      *
@@ -35,4 +37,15 @@ export default class NavigableAI {
      * @param handler Function to handle the action
      */
     registerActionHandler(actionName: string, handler: IActionHandler): void;
+    /**
+     * Verifies the signature of a message sent from the client.
+     *
+     * This will compare the signature sent in the request with a signature generated
+     * using the same shared secret key. If the two match, the request is deemed valid.
+     *
+     * @param message The message sent from the client
+     * @param signature The signature sent from the client
+     * @returns A Promise that resolves to a boolean indicating if the signature is valid
+     */
+    private verifyRequestSignature;
 }

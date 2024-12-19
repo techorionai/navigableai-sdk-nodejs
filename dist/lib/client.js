@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const consts_js_1 = require("./consts.js");
 const request_js_1 = __importDefault(require("./request.js"));
+const crypto_1 = require("crypto");
 /**
  * Nodejs Client for Navigable AI
  */
@@ -22,10 +23,18 @@ class NavigableAI {
      * Create an instance of NavigableAIClient for a single model
      *
      * @param apiKey API key for a model in Navigable AI
+     * @param sharedSecretKey Shared secret key between your server and client. Use any random string, ensure it is the same on the server and client. If provided, each request will verify the signature coming from the client.
      */
-    constructor(apiKey) {
+    constructor(apiKey, sharedSecretKey) {
+        this.sharedSecretKey = undefined;
         this.actionHandlers = {};
+        if (!apiKey || !apiKey.trim().length) {
+            throw new Error("Navigable AI: Error: API key is required");
+        }
         this.apiKey = apiKey;
+        if (sharedSecretKey) {
+            this.sharedSecretKey = sharedSecretKey;
+        }
     }
     /**
      * Get the last 20 messages in the last conversation by your user's unique identifier
@@ -65,6 +74,12 @@ class NavigableAI {
     sendMessage(message, options) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                if (this.sharedSecretKey) {
+                    if (!(options === null || options === void 0 ? void 0 : options.signature)) {
+                        throw new Error("Signature is required when using shared secret key");
+                    }
+                    this.verifyRequestSignature(message, options === null || options === void 0 ? void 0 : options.signature);
+                }
                 const res = yield (0, request_js_1.default)({
                     hostname: consts_js_1.HOSTNAME,
                     method: consts_js_1.ENDPOINTS.SEND_MESSAGE.method,
@@ -80,12 +95,6 @@ class NavigableAI {
                     markdown: options === null || options === void 0 ? void 0 : options.markdown,
                     currentPage: options === null || options === void 0 ? void 0 : options.currentPage,
                 });
-                if (res.statusCode === 200 && res.data.action) {
-                    if (this.actionHandlers[res.data.action] &&
-                        !(options === null || options === void 0 ? void 0 : options.omitActionHandler)) {
-                        this.actionHandlers[res.data.action](res.data.action, res.data.identifier);
-                    }
-                }
                 return res;
             }
             catch (error) {
@@ -109,6 +118,30 @@ class NavigableAI {
      */
     registerActionHandler(actionName, handler) {
         this.actionHandlers[actionName] = handler;
+    }
+    /**
+     * Verifies the signature of a message sent from the client.
+     *
+     * This will compare the signature sent in the request with a signature generated
+     * using the same shared secret key. If the two match, the request is deemed valid.
+     *
+     * @param message The message sent from the client
+     * @param signature The signature sent from the client
+     * @returns A Promise that resolves to a boolean indicating if the signature is valid
+     */
+    verifyRequestSignature(message, signature) {
+        return new Promise((resolve) => {
+            if (this.sharedSecretKey) {
+                const payload = message;
+                const expectedSignature = (0, crypto_1.createHmac)("sha256", this.sharedSecretKey)
+                    .update(payload)
+                    .digest("hex");
+                resolve(expectedSignature === signature);
+            }
+            else {
+                resolve(true);
+            }
+        });
     }
 }
 exports.default = NavigableAI;

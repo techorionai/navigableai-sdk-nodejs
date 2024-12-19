@@ -10,11 +10,6 @@ export interface IChatSendMessageOptions {
   new?: boolean;
 
   /**
-   * Don't run the action handler by passing omitActionHandler: true
-   */
-  omitActionHandler?: boolean;
-
-  /**
    * Respond in markdown format by passing markdown: true
    */
   markdown?: boolean;
@@ -23,6 +18,11 @@ export interface IChatSendMessageOptions {
    * The current page the user is on. It should be the same as the one added in Navigable for this model.
    */
   currentPage?: string;
+
+  /**
+   * The signature of the request. Should be provided if using a shared secret key.
+   */
+  signature?: string;
 }
 
 export interface IChatSendMessageResponse {

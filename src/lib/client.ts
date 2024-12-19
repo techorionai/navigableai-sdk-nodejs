@@ -6,21 +6,31 @@ import {
 } from "./chat.js";
 import { API_KEY_HEADER, ENDPOINTS, HOSTNAME } from "./consts.js";
 import request from "./request.js";
+import { createHmac } from "crypto";
 
 /**
  * Nodejs Client for Navigable AI
  */
 export default class NavigableAI {
   private apiKey: string;
+  private sharedSecretKey: string | undefined = undefined;
   private actionHandlers: Record<string, IActionHandler> = {};
 
   /**
    * Create an instance of NavigableAIClient for a single model
    *
    * @param apiKey API key for a model in Navigable AI
+   * @param sharedSecretKey Shared secret key between your server and client. Use any random string, ensure it is the same on the server and client. If provided, each request will verify the signature coming from the client.
    */
-  constructor(apiKey: string) {
+  constructor(apiKey: string, sharedSecretKey?: string) {
+    if (!apiKey || !apiKey.trim().length) {
+      throw new Error("Navigable AI: Error: API key is required");
+    }
     this.apiKey = apiKey;
+
+    if (sharedSecretKey) {
+      this.sharedSecretKey = sharedSecretKey;
+    }
   }
 
   /**
@@ -58,6 +68,13 @@ export default class NavigableAI {
    */
   async sendMessage(message: string, options?: IChatSendMessageOptions) {
     try {
+      if (this.sharedSecretKey) {
+        if (!options?.signature) {
+          throw new Error("Signature is required when using shared secret key");
+        }
+        this.verifyRequestSignature(message, options?.signature);
+      }
+
       const res = await request<IChatSendMessageResponse>(
         {
           hostname: HOSTNAME,
@@ -76,18 +93,6 @@ export default class NavigableAI {
           currentPage: options?.currentPage,
         }
       );
-
-      if (res.statusCode === 200 && res.data.action) {
-        if (
-          this.actionHandlers[res.data.action] &&
-          !options?.omitActionHandler
-        ) {
-          this.actionHandlers[res.data.action](
-            res.data.action,
-            res.data.identifier
-          );
-        }
-      }
 
       return res;
     } catch (error) {
@@ -110,5 +115,32 @@ export default class NavigableAI {
    */
   registerActionHandler(actionName: string, handler: IActionHandler) {
     this.actionHandlers[actionName] = handler;
+  }
+
+  /**
+   * Verifies the signature of a message sent from the client.
+   *
+   * This will compare the signature sent in the request with a signature generated
+   * using the same shared secret key. If the two match, the request is deemed valid.
+   *
+   * @param message The message sent from the client
+   * @param signature The signature sent from the client
+   * @returns A Promise that resolves to a boolean indicating if the signature is valid
+   */
+  private verifyRequestSignature(
+    message: string,
+    signature: string
+  ): Promise<boolean> {
+    return new Promise((resolve) => {
+      if (this.sharedSecretKey) {
+        const payload = message;
+        const expectedSignature = createHmac("sha256", this.sharedSecretKey)
+          .update(payload)
+          .digest("hex");
+        resolve(expectedSignature === signature);
+      } else {
+        resolve(true);
+      }
+    });
   }
 }
