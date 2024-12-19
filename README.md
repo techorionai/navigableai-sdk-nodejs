@@ -51,7 +51,9 @@ navigableAI.registerActionHandler("Contact Support", (uniqueId, context) => {
 
 // Endpoint to send a message to Navigable AI
 app.post("/assistant/send-message", express.json(), async (req, res) => {
-  const { message, identifier, markdown, currentPage, signature } = req.body;
+  const { message, identifier, markdown, currentPage } = req.body;
+
+  const signature = req.headers["x-request-signature"];
 
   try {
     const response = await navigableAI.sendMessage(message, {
