@@ -37,6 +37,13 @@ export interface IChatSendMessageResponse {
   };
 }
 
+export interface IChatGetMessageOptions {
+  /**
+   * The signature of the request. Should be provided if using a shared secret key.
+   */
+  signature?: string;
+}
+
 export interface IChatGetMessageResponse {
   statusCode: number;
   success: boolean;

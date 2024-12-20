@@ -1,5 +1,6 @@
 import { IActionHandler } from "./actionHandler.js";
 import {
+  IChatGetMessageOptions,
   IChatGetMessageResponse,
   IChatSendMessageOptions,
   IChatSendMessageResponse,
@@ -38,8 +39,22 @@ export default class NavigableAI {
    *
    * @param identifier Your user's unique identifier
    */
-  async getMessages(identifier: string) {
+  async getMessages(identifier: string, options?: IChatGetMessageOptions) {
     try {
+      if (this.sharedSecretKey) {
+        if (!options?.signature) {
+          throw new Error("Signature is required when using shared secret key");
+        }
+
+        const isValid = await this.verifyRequestSignature(
+          identifier,
+          options?.signature
+        );
+        if (!isValid) {
+          throw new Error("Invalid signature");
+        }
+      }
+
       const res = await request<IChatGetMessageResponse>({
         hostname: HOSTNAME,
         method: ENDPOINTS.GET_MESSAGES.method,
@@ -51,11 +66,16 @@ export default class NavigableAI {
 
       return res;
     } catch (err) {
+      console.error({
+        identifier,
+        options,
+      });
       if (err instanceof Error) {
         console.error("Navigable AI: Error: " + err.message);
       } else {
         console.error("Navigable AI: Error: " + err);
       }
+      return null;
     }
   }
 
@@ -72,7 +92,14 @@ export default class NavigableAI {
         if (!options?.signature) {
           throw new Error("Signature is required when using shared secret key");
         }
-        this.verifyRequestSignature(message, options?.signature);
+
+        const isValid = await this.verifyRequestSignature(
+          message,
+          options?.signature
+        );
+        if (!isValid) {
+          throw new Error("Invalid signature");
+        }
       }
 
       const res = await request<IChatSendMessageResponse>(
@@ -96,6 +123,10 @@ export default class NavigableAI {
 
       return res;
     } catch (error) {
+      console.error({
+        message,
+        options,
+      });
       if (error instanceof Error) {
         console.error("Navigable AI: Error: " + error.message);
       } else {
@@ -118,22 +149,21 @@ export default class NavigableAI {
   }
 
   /**
-   * Verifies the signature of a message sent from the client.
+   * Verifies the signature of a payload sent from the client.
    *
    * This will compare the signature sent in the request with a signature generated
    * using the same shared secret key. If the two match, the request is deemed valid.
    *
-   * @param message The message sent from the client
+   * @param payload The payload used to verify the signature
    * @param signature The signature sent from the client
    * @returns A Promise that resolves to a boolean indicating if the signature is valid
    */
   private verifyRequestSignature(
-    message: string,
+    payload: string,
     signature: string
   ): Promise<boolean> {
     return new Promise((resolve) => {
       if (this.sharedSecretKey) {
-        const payload = message;
         const expectedSignature = createHmac("sha256", this.sharedSecretKey)
           .update(payload)
           .digest("hex");

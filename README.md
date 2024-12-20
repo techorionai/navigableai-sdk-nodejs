@@ -63,6 +63,7 @@ app.post("/assistant/send-message", express.json(), async (req, res) => {
       currentPage,
       signature,
     });
+    if (!response) throw new Error("Failed to send message");
 
     // Handle action if present
     const action = response?.data?.action;
@@ -70,7 +71,7 @@ app.post("/assistant/send-message", express.json(), async (req, res) => {
       navigableAI.actions[action](identifier, res); // Call the registered action handler
     }
 
-    res.json(response);
+    res.status(200).json(response);
   } catch (err) {
     res.status(500).json({ error: "Error sending message" });
   }
@@ -80,9 +81,15 @@ app.post("/assistant/send-message", express.json(), async (req, res) => {
 app.get("/assistant/get-messages", async (req, res) => {
   const { identifier } = req.query;
 
+  const signature = req.headers["x-request-signature"];
+
   try {
-    const messages = await navigableAI.getMessages(String(identifier));
-    res.json(messages);
+    const messages = await navigableAI.getMessages(String(identifier), {
+      signature,
+    });
+    if (!messages) throw new Error("Failed to get messages");
+
+    res.status(200).json(messages);
   } catch (err) {
     res.status(500).json({ error: "Error retrieving messages" });
   }
@@ -103,11 +110,13 @@ app.listen(port, () => {
     - `new`: Start a new conversation (optional).
     - `markdown`: Flag to respond in markdown format (optional).
     - `currentPage`: The current page the user is on (optional).
-    - `signature`: The signature of the request if using a shared secret key (optional).
+    - `signature`: The signature of the request if using a shared secret key (optional). Payload is the message.
 
-- **`getMessages(identifier: string)`**:
+- **`getMessages(identifier: string, options?: IChatGetMessageOptions)`**:
 
   - Retrieves the last 20 messages from the conversation for a specific user.
+  - The `options` parameter is optional and can include:
+    - `signature`: The signature of the request if using a shared secret key (optional). Payload is the identifier.
 
 - **`registerActionHandler(actionName: string, handler: IActionHandler)`**:
 
