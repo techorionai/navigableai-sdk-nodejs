@@ -41,9 +41,18 @@ class NavigableAI {
      *
      * @param identifier Your user's unique identifier
      */
-    getMessages(identifier) {
+    getMessages(identifier, options) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                if (this.sharedSecretKey) {
+                    if (!(options === null || options === void 0 ? void 0 : options.signature)) {
+                        throw new Error("Signature is required when using shared secret key");
+                    }
+                    const isValid = yield this.verifyRequestSignature(identifier, options === null || options === void 0 ? void 0 : options.signature);
+                    if (!isValid) {
+                        throw new Error("Invalid signature");
+                    }
+                }
                 const res = yield (0, request_js_1.default)({
                     hostname: consts_js_1.HOSTNAME,
                     method: consts_js_1.ENDPOINTS.GET_MESSAGES.method,
@@ -55,12 +64,17 @@ class NavigableAI {
                 return res;
             }
             catch (err) {
+                console.error({
+                    identifier,
+                    options,
+                });
                 if (err instanceof Error) {
                     console.error("Navigable AI: Error: " + err.message);
                 }
                 else {
                     console.error("Navigable AI: Error: " + err);
                 }
+                return null;
             }
         });
     }
@@ -78,7 +92,10 @@ class NavigableAI {
                     if (!(options === null || options === void 0 ? void 0 : options.signature)) {
                         throw new Error("Signature is required when using shared secret key");
                     }
-                    this.verifyRequestSignature(message, options === null || options === void 0 ? void 0 : options.signature);
+                    const isValid = yield this.verifyRequestSignature(message, options === null || options === void 0 ? void 0 : options.signature);
+                    if (!isValid) {
+                        throw new Error("Invalid signature");
+                    }
                 }
                 const res = yield (0, request_js_1.default)({
                     hostname: consts_js_1.HOSTNAME,
@@ -94,10 +111,15 @@ class NavigableAI {
                     new: options === null || options === void 0 ? void 0 : options.new,
                     markdown: options === null || options === void 0 ? void 0 : options.markdown,
                     currentPage: options === null || options === void 0 ? void 0 : options.currentPage,
+                    configuredActions: options === null || options === void 0 ? void 0 : options.configuredActions,
                 });
                 return res;
             }
             catch (error) {
+                console.error({
+                    message,
+                    options,
+                });
                 if (error instanceof Error) {
                     console.error("Navigable AI: Error: " + error.message);
                 }
@@ -120,19 +142,18 @@ class NavigableAI {
         this.actionHandlers[actionName] = handler;
     }
     /**
-     * Verifies the signature of a message sent from the client.
+     * Verifies the signature of a payload sent from the client.
      *
      * This will compare the signature sent in the request with a signature generated
      * using the same shared secret key. If the two match, the request is deemed valid.
      *
-     * @param message The message sent from the client
+     * @param payload The payload used to verify the signature
      * @param signature The signature sent from the client
      * @returns A Promise that resolves to a boolean indicating if the signature is valid
      */
-    verifyRequestSignature(message, signature) {
+    verifyRequestSignature(payload, signature) {
         return new Promise((resolve) => {
             if (this.sharedSecretKey) {
-                const payload = message;
                 const expectedSignature = (0, crypto_1.createHmac)("sha256", this.sharedSecretKey)
                     .update(payload)
                     .digest("hex");

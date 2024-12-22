@@ -1,5 +1,5 @@
 import { IActionHandler } from "./actionHandler.js";
-import { IChatGetMessageResponse, IChatSendMessageOptions, IChatSendMessageResponse } from "./chat.js";
+import { IChatGetMessageOptions, IChatGetMessageResponse, IChatSendMessageOptions, IChatSendMessageResponse } from "./chat.js";
 /**
  * Nodejs Client for Navigable AI
  */
@@ -19,7 +19,7 @@ export default class NavigableAI {
      *
      * @param identifier Your user's unique identifier
      */
-    getMessages(identifier: string): Promise<IChatGetMessageResponse | undefined>;
+    getMessages(identifier: string, options?: IChatGetMessageOptions): Promise<IChatGetMessageResponse | null>;
     /**
      * Send a message to Navigable AI and get a response from the assistant.
      *
@@ -38,12 +38,12 @@ export default class NavigableAI {
      */
     registerActionHandler(actionName: string, handler: IActionHandler): void;
     /**
-     * Verifies the signature of a message sent from the client.
+     * Verifies the signature of a payload sent from the client.
      *
      * This will compare the signature sent in the request with a signature generated
      * using the same shared secret key. If the two match, the request is deemed valid.
      *
-     * @param message The message sent from the client
+     * @param payload The payload used to verify the signature
      * @param signature The signature sent from the client
      * @returns A Promise that resolves to a boolean indicating if the signature is valid
      */

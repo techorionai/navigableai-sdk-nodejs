@@ -51,7 +51,8 @@ navigableAI.registerActionHandler("Contact Support", (uniqueId, context) => {
 
 // Endpoint to send a message to Navigable AI
 app.post("/assistant/send-message", express.json(), async (req, res) => {
-  const { message, identifier, markdown, currentPage } = req.body;
+  const { message, identifier, markdown, currentPage, configuredActions } =
+    req.body;
 
   const signature = req.headers["x-request-signature"];
 
@@ -61,6 +62,7 @@ app.post("/assistant/send-message", express.json(), async (req, res) => {
       new: req.body.new,
       markdown,
       currentPage,
+      configuredActions,
       signature,
     });
     if (!response) throw new Error("Failed to send message");
@@ -110,6 +112,7 @@ app.listen(port, () => {
     - `new`: Start a new conversation (optional).
     - `markdown`: Flag to respond in markdown format (optional).
     - `currentPage`: The current page the user is on (optional).
+    - `configuredActions`: The list of configured actions in both Navigable AI and your app (optional).
     - `signature`: The signature of the request if using a shared secret key (optional). Payload is the message.
 
 - **`getMessages(identifier: string, options?: IChatGetMessageOptions)`**:
@@ -147,6 +150,7 @@ const response = await navigableAI.sendMessage(message, {
   new: req.body.new,
   markdown,
   currentPage,
+  configuredActions,
   signature,
 });
 
@@ -173,6 +177,7 @@ Here's an example of how you might send a message from a user:
   "new": true,
   "markdown": false,
   "currentPage": "Dashboard",
+  "configuredActions": ["Contact Support"],
   "signature": "<signature>"
 }
 ```
@@ -221,6 +226,7 @@ interface IChatSendMessageOptions {
   new?: boolean;
   markdown?: boolean;
   currentPage?: string;
+  configuredActions?: string[];
   signature?: string;
 }
 ```

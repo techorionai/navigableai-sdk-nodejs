@@ -20,6 +20,11 @@ export interface IChatSendMessageOptions {
   currentPage?: string;
 
   /**
+   * A list of actions configured in Navigable AI and your application front end.
+   */
+  configuredActions?: string[];
+
+  /**
    * The signature of the request. Should be provided if using a shared secret key.
    */
   signature?: string;

@@ -118,6 +118,7 @@ export default class NavigableAI {
           new: options?.new,
           markdown: options?.markdown,
           currentPage: options?.currentPage,
+          configuredActions: options?.configuredActions,
         }
       );
 
