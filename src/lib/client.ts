@@ -15,7 +15,7 @@ import { createHmac } from "crypto";
 export default class NavigableAI {
   private apiKey: string;
   private sharedSecretKey: string | undefined = undefined;
-  private actionHandlers: Record<string, IActionHandler> = {};
+  public actionHandlers: Record<string, IActionHandler> = {};
 
   /**
    * Create an instance of NavigableAIClient for a single model

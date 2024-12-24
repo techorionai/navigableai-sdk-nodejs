@@ -1,6 +1,6 @@
 {
   "name": "navigableai-node",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Node.js Server SDK for Navigable AI.",
   "main": "./dist/index.js",
   "types": "./dist/types/index.d.ts",

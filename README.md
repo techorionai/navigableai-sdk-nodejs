@@ -69,8 +69,8 @@ app.post("/assistant/send-message", express.json(), async (req, res) => {
 
     // Handle action if present
     const action = response?.data?.action;
-    if (action && navigableAI.actions[action]) {
-      navigableAI.actions[action](identifier, res); // Call the registered action handler
+    if (action && navigableAI.actionHandlers[action]) {
+      navigableAI.actionHandlers[action](identifier, res); // Call the registered action handler
     }
 
     res.status(200).json(response);
@@ -156,8 +156,8 @@ const response = await navigableAI.sendMessage(message, {
 
 // If an action exists in the response, handle it
 const action = response?.data?.action;
-if (action && navigableAI.actions[action]) {
-  navigableAI.actions[action](identifier, res); // Handle action
+if (action && navigableAI.actionHandlers[action]) {
+  navigableAI.actionHandlers[action](identifier, res); // Handle action
 }
 ```
 

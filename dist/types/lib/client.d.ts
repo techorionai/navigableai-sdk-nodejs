@@ -6,7 +6,7 @@ import { IChatGetMessageOptions, IChatGetMessageResponse, IChatSendMessageOption
 export default class NavigableAI {
     private apiKey;
     private sharedSecretKey;
-    private actionHandlers;
+    actionHandlers: Record<string, IActionHandler>;
     /**
      * Create an instance of NavigableAIClient for a single model
      *
