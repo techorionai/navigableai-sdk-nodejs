@@ -40,6 +40,15 @@ export interface IChatSendMessageOptions {
   signature?: string;
 }
 
+export interface ToolCall {
+  id: string;
+  type: string;
+  function: {
+    name: string;
+    arguments: JSON;
+  };
+}
+
 export interface IChatSendMessageResponse {
   statusCode: number;
   success: boolean;
@@ -49,6 +58,7 @@ export interface IChatSendMessageResponse {
     assistantMessage: string;
     action: string | null;
     identifier: string;
+    toolCalls: ToolCall[];
   };
 }
 
