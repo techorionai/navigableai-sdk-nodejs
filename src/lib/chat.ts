@@ -45,7 +45,10 @@ export interface ToolCall {
   type: string;
   function: {
     name: string;
-    arguments: JSON;
+    /**
+     * JSON string of arguments
+     */
+    arguments: string;
   };
 }
 
