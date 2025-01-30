@@ -25,6 +25,16 @@ export interface IChatSendMessageOptions {
   configuredActions?: string[];
 
   /**
+   * A list of agent functions configured in Navigable AI and your application front end.
+   */
+  configuredFunctions?: string[];
+
+  /**
+   * The ID of the function call, if responding with the function response.
+   */
+  functionCallId?: string;
+
+  /**
    * The signature of the request. Should be provided if using a shared secret key.
    */
   signature?: string;

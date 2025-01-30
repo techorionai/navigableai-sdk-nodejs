@@ -1,3 +1,4 @@
+import { config } from "process";
 import { IActionHandler } from "./actionHandler.js";
 import {
   IChatGetMessageOptions,
@@ -119,6 +120,8 @@ export default class NavigableAI {
           markdown: options?.markdown,
           currentPage: options?.currentPage,
           configuredActions: options?.configuredActions,
+          configuredFunctions: options?.configuredFunctions,
+          functionCallId: options?.functionCallId,
         }
       );
 
