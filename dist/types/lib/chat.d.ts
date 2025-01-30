@@ -20,9 +20,28 @@ export interface IChatSendMessageOptions {
      */
     configuredActions?: string[];
     /**
+     * A list of agent functions configured in Navigable AI and your application front end.
+     */
+    configuredFunctions?: string[];
+    /**
+     * The ID of the function call, if responding with the function response.
+     */
+    functionCallId?: string;
+    /**
      * The signature of the request. Should be provided if using a shared secret key.
      */
     signature?: string;
+}
+export interface ToolCall {
+    id: string;
+    type: string;
+    function: {
+        name: string;
+        /**
+         * JSON string of arguments
+         */
+        arguments: string;
+    };
 }
 export interface IChatSendMessageResponse {
     statusCode: number;
@@ -33,6 +52,7 @@ export interface IChatSendMessageResponse {
         assistantMessage: string;
         action: string | null;
         identifier: string;
+        toolCalls: ToolCall[];
     };
 }
 export interface IChatGetMessageOptions {

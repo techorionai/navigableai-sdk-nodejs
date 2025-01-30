@@ -112,6 +112,8 @@ class NavigableAI {
                     markdown: options === null || options === void 0 ? void 0 : options.markdown,
                     currentPage: options === null || options === void 0 ? void 0 : options.currentPage,
                     configuredActions: options === null || options === void 0 ? void 0 : options.configuredActions,
+                    configuredFunctions: options === null || options === void 0 ? void 0 : options.configuredFunctions,
+                    functionCallId: options === null || options === void 0 ? void 0 : options.functionCallId,
                 });
                 return res;
             }

@@ -1,6 +1,6 @@
 {
   "name": "navigableai-node",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "Node.js Server SDK for Navigable AI.",
   "main": "./dist/index.js",
   "types": "./dist/types/index.d.ts",
@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npm rebuild typescript && tsc --project tsconfig.json"
+    "build": "npm rebuild typescript && tsc --build --verbose"
   },
   "author": "TECHORION AI LLP",
   "license": "ISC",
