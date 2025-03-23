@@ -51,8 +51,15 @@ navigableAI.registerActionHandler("Contact Support", (uniqueId, context) => {
 
 // Endpoint to send a message to Navigable AI
 app.post("/assistant/send-message", express.json(), async (req, res) => {
-  const { message, identifier, markdown, currentPage, configuredActions } =
-    req.body;
+  const {
+    message,
+    identifier,
+    markdown,
+    currentPage,
+    configuredActions,
+    configuredFunctions,
+    functionCallId,
+  } = req.body;
 
   const signature = req.headers["x-request-signature"];
 
@@ -63,6 +70,8 @@ app.post("/assistant/send-message", express.json(), async (req, res) => {
       markdown,
       currentPage,
       configuredActions,
+      configuredFunctions,
+      functionCallId,
       signature,
     });
     if (!response) throw new Error("Failed to send message");
@@ -113,6 +122,8 @@ app.listen(port, () => {
     - `markdown`: Flag to respond in markdown format (optional).
     - `currentPage`: The current page the user is on (optional).
     - `configuredActions`: The list of configured actions in both Navigable AI and your app (optional).
+    - `configuredFunctions`: The list of configured functions in both Navigable AI and your app (optional).
+    - `functionCallId`: The ID of the function call (optional). Required when returning the value of a function call.
     - `signature`: The signature of the request if using a shared secret key (optional). Payload is the message.
 
 - **`getMessages(identifier: string, options?: IChatGetMessageOptions)`**:
@@ -151,6 +162,8 @@ const response = await navigableAI.sendMessage(message, {
   markdown,
   currentPage,
   configuredActions,
+  configuredFunctions,
+  functionCallId,
   signature,
 });
 
@@ -178,6 +191,8 @@ Here's an example of how you might send a message from a user:
   "markdown": false,
   "currentPage": "Dashboard",
   "configuredActions": ["Contact Support"],
+  "configuredFunctions": ["Raise a Support Ticket"],
+  "functionCallId": "<functionCallId>",
   "signature": "<signature>"
 }
 ```
@@ -194,7 +209,8 @@ A successful response from the API will look like this:
   "data": {
     "assistantMessage": "How can I assist you with your account?",
     "action": null,
-    "identifier": "user123"
+    "identifier": "user123",
+    "toolCalls": []
   }
 }
 ```
@@ -227,6 +243,8 @@ interface IChatSendMessageOptions {
   markdown?: boolean;
   currentPage?: string;
   configuredActions?: string[];
+  configuredFunctions?: string[];
+  functionCallId?: string;
   signature?: string;
 }
 ```
@@ -243,6 +261,23 @@ interface IChatSendMessageResponse {
     assistantMessage: string;
     action: string | null;
     identifier: string;
+    toolCalls: ToolCall[];
+  };
+}
+```
+
+### `ToolCall`
+
+```ts
+interface ToolCall {
+  id: string;
+  type: string;
+  function: {
+    name: string;
+    /**
+     * JSON string of arguments
+     */
+    arguments: string;
   };
 }
 ```
@@ -261,6 +296,7 @@ interface IChatGetMessageResponse {
     new: boolean;
     createdAt: Date;
     action: string | null;
+    toolCalls: ToolCall[];
   }[];
 }
 ```

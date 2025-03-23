@@ -83,5 +83,6 @@ export interface IChatGetMessageResponse {
     new: boolean;
     createdAt: Date;
     action: string | null;
+    toolCalls: ToolCall[];
   }[];
 }
