@@ -5,6 +5,7 @@ import {
   IChatGetMessageResponse,
   IChatSendMessageOptions,
   IChatSendMessageResponse,
+  IChatListSessionsResponse,
 } from "./chat.js";
 import { API_KEY_HEADER, ENDPOINTS, HOSTNAME } from "./consts.js";
 import request from "./request.js";
@@ -176,5 +177,100 @@ export default class NavigableAI {
         resolve(true);
       }
     });
+  }
+  /**
+   * List chat sessions for a user identifier.
+   * @param identifier User's unique identifier
+   * @param options Optional signature for verification
+   */
+  async listChatSessions(identifier: string, options?: IChatGetMessageOptions) {
+    try {
+      if (this.sharedSecretKey) {
+        if (!options?.signature) {
+          throw new Error("Signature is required when using shared secret key");
+        }
+        const isValid = await this.verifyRequestSignature(
+          identifier,
+          options.signature
+        );
+        if (!isValid) {
+          throw new Error("Invalid signature");
+        }
+      }
+
+      const res = await request<IChatListSessionsResponse>({
+        hostname: HOSTNAME,
+        method: ENDPOINTS.GET_CHAT_SESSIONS.method,
+        path: ENDPOINTS.GET_CHAT_SESSIONS.path + `?identifier=${identifier}`,
+        headers: {
+          [API_KEY_HEADER]: this.apiKey,
+        },
+      });
+
+      return res;
+    } catch (err) {
+      console.error({
+        identifier,
+        options,
+      });
+      if (err instanceof Error) {
+        console.error("Navigable AI: Error: " + err.message);
+      } else {
+        console.error("Navigable AI: Error: " + err);
+      }
+      return null;
+    }
+  }
+
+  /**
+   * Get messages by chat session ID.
+   * @param sessionId Chat session ID
+   * @param identifier User's unique identifier
+   * @param options Optional signature for verification
+   */
+  async getMessagesBySessionId(
+    sessionId: string,
+    identifier: string,
+    options?: IChatGetMessageOptions
+  ) {
+    try {
+      if (this.sharedSecretKey) {
+        if (!options?.signature) {
+          throw new Error("Signature is required when using shared secret key");
+        }
+        const isValid = await this.verifyRequestSignature(
+          identifier,
+          options.signature
+        );
+        if (!isValid) {
+          throw new Error("Invalid signature");
+        }
+      }
+
+      const res = await request<IChatGetMessageResponse>({
+        hostname: HOSTNAME,
+        method: ENDPOINTS.GET_SESSION_MESSAGES.method,
+        path:
+          ENDPOINTS.GET_SESSION_MESSAGES.path +
+          `${sessionId}?identifier=${identifier}`,
+        headers: {
+          [API_KEY_HEADER]: this.apiKey,
+        },
+      });
+
+      return res;
+    } catch (err) {
+      console.error({
+        sessionId,
+        identifier,
+        options,
+      });
+      if (err instanceof Error) {
+        console.error("Navigable AI: Error: " + err.message);
+      } else {
+        console.error("Navigable AI: Error: " + err);
+      }
+      return null;
+    }
   }
 }

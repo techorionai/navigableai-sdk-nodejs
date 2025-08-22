@@ -86,3 +86,23 @@ export interface IChatGetMessageResponse {
     toolCalls: ToolCall[];
   }[];
 }
+/**
+ * Represents a chat session summary.
+ */
+export interface IChatSession {
+  id: string;
+  title: string;
+  createdAt: string; // ISO string
+  closed: boolean;
+}
+
+/**
+ * Response for listing chat sessions.
+ */
+export interface IChatListSessionsResponse {
+  statusCode: number;
+  success: boolean;
+  message: string;
+  errors?: Record<string, string>;
+  data: IChatSession[];
+}

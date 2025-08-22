@@ -9,7 +9,11 @@ interface IEndpointParams {
   method: RequestMethod;
 }
 
-type Endpoint = "SEND_MESSAGE" | "GET_MESSAGES";
+type Endpoint =
+  | "SEND_MESSAGE"
+  | "GET_MESSAGES"
+  | "GET_CHAT_SESSIONS"
+  | "GET_SESSION_MESSAGES";
 
 // API Endpoints
 export const ENDPOINTS: Record<Endpoint, IEndpointParams> = {
@@ -19,6 +23,14 @@ export const ENDPOINTS: Record<Endpoint, IEndpointParams> = {
   },
   GET_MESSAGES: {
     path: "/api/v1/chat",
+    method: "GET",
+  },
+  GET_CHAT_SESSIONS: {
+    path: "/api/v1/chat/sessions",
+    method: "GET",
+  },
+  GET_SESSION_MESSAGES: {
+    path: "/api/v1/chat/sessions/", // sessionId will be appended dynamically
     method: "GET",
   },
 };

@@ -310,3 +310,28 @@ This project is licensed under the ISC License.
 Feel free to fork and modify the SDK according to your needs!
 
 ---
+
+## Chat Sessions
+
+### List chat sessions for a user
+
+```typescript
+import { NavigableAI } from "./src";
+
+const client = new NavigableAI("YOUR_API_KEY");
+const sessions = await client.listChatSessions("user@example.com");
+console.log(sessions);
+```
+
+### Get messages by chat session ID
+
+```typescript
+import { NavigableAI } from "./src";
+
+const client = new NavigableAI("YOUR_API_KEY");
+const messages = await client.getMessagesBySessionId(
+  "SESSION_ID",
+  "user@example.com"
+);
+console.log(messages);
+```

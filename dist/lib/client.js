@@ -166,5 +166,92 @@ class NavigableAI {
             }
         });
     }
+    /**
+     * List chat sessions for a user identifier.
+     * @param identifier User's unique identifier
+     * @param options Optional signature for verification
+     */
+    listChatSessions(identifier, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (this.sharedSecretKey) {
+                    if (!(options === null || options === void 0 ? void 0 : options.signature)) {
+                        throw new Error("Signature is required when using shared secret key");
+                    }
+                    const isValid = yield this.verifyRequestSignature(identifier, options.signature);
+                    if (!isValid) {
+                        throw new Error("Invalid signature");
+                    }
+                }
+                const res = yield (0, request_js_1.default)({
+                    hostname: consts_js_1.HOSTNAME,
+                    method: consts_js_1.ENDPOINTS.GET_CHAT_SESSIONS.method,
+                    path: consts_js_1.ENDPOINTS.GET_CHAT_SESSIONS.path + `?identifier=${identifier}`,
+                    headers: {
+                        [consts_js_1.API_KEY_HEADER]: this.apiKey,
+                    },
+                });
+                return res;
+            }
+            catch (err) {
+                console.error({
+                    identifier,
+                    options,
+                });
+                if (err instanceof Error) {
+                    console.error("Navigable AI: Error: " + err.message);
+                }
+                else {
+                    console.error("Navigable AI: Error: " + err);
+                }
+                return null;
+            }
+        });
+    }
+    /**
+     * Get messages by chat session ID.
+     * @param sessionId Chat session ID
+     * @param identifier User's unique identifier
+     * @param options Optional signature for verification
+     */
+    getMessagesBySessionId(sessionId, identifier, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (this.sharedSecretKey) {
+                    if (!(options === null || options === void 0 ? void 0 : options.signature)) {
+                        throw new Error("Signature is required when using shared secret key");
+                    }
+                    const isValid = yield this.verifyRequestSignature(identifier, options.signature);
+                    if (!isValid) {
+                        throw new Error("Invalid signature");
+                    }
+                }
+                const res = yield (0, request_js_1.default)({
+                    hostname: consts_js_1.HOSTNAME,
+                    method: consts_js_1.ENDPOINTS.GET_SESSION_MESSAGES.method,
+                    path: consts_js_1.ENDPOINTS.GET_SESSION_MESSAGES.path +
+                        `${sessionId}?identifier=${identifier}`,
+                    headers: {
+                        [consts_js_1.API_KEY_HEADER]: this.apiKey,
+                    },
+                });
+                return res;
+            }
+            catch (err) {
+                console.error({
+                    sessionId,
+                    identifier,
+                    options,
+                });
+                if (err instanceof Error) {
+                    console.error("Navigable AI: Error: " + err.message);
+                }
+                else {
+                    console.error("Navigable AI: Error: " + err);
+                }
+                return null;
+            }
+        });
+    }
 }
 exports.default = NavigableAI;
