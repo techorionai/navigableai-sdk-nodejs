@@ -354,6 +354,29 @@ interface IChatGetMessageResponse {
 }
 ```
 
+### `IChatSession`
+
+```ts
+interface IChatSession {
+  id: string;
+  title: string;
+  createdAt: string; // ISO string
+  closed: boolean;
+}
+```
+
+### `IChatListSessionsResponse`
+
+```ts
+interface IChatListSessionsResponse {
+  statusCode: number;
+  success: boolean;
+  message: string;
+  errors?: Record<string, string>;
+  data: IChatSession[];
+}
+```
+
 ### License
 
 This project is licensed under the ISC License.
