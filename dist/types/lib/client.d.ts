@@ -1,5 +1,5 @@
 import { IActionHandler } from "./actionHandler.js";
-import { IChatGetMessageOptions, IChatGetMessageResponse, IChatSendMessageOptions, IChatSendMessageResponse } from "./chat.js";
+import { IChatGetMessageOptions, IChatGetMessageResponse, IChatSendMessageOptions, IChatSendMessageResponse, IChatListSessionsResponse } from "./chat.js";
 /**
  * Nodejs Client for Navigable AI
  */
@@ -48,4 +48,17 @@ export default class NavigableAI {
      * @returns A Promise that resolves to a boolean indicating if the signature is valid
      */
     private verifyRequestSignature;
+    /**
+     * List chat sessions for a user identifier.
+     * @param identifier User's unique identifier
+     * @param options Optional signature for verification
+     */
+    listChatSessions(identifier: string, options?: IChatGetMessageOptions): Promise<IChatListSessionsResponse | null>;
+    /**
+     * Get messages by chat session ID.
+     * @param sessionId Chat session ID
+     * @param identifier User's unique identifier
+     * @param options Optional signature for verification
+     */
+    getMessagesBySessionId(sessionId: string, identifier: string, options?: IChatGetMessageOptions): Promise<IChatGetMessageResponse | null>;
 }

@@ -106,6 +106,47 @@ app.get("/assistant/get-messages", async (req, res) => {
   }
 });
 
+// Endpoint to get chat sessions for a user
+app.get("/assistant/get-chat-sessions", async (req, res) => {
+  const { identifier } = req.query;
+
+  const signature = req.headers["x-request-signature"];
+
+  try {
+    const sessions = await navigableAI.listChatSessions(String(identifier), {
+      signature,
+    });
+    if (!sessions) throw new Error("Failed to get chat sessions");
+
+    res.status(200).json(sessions);
+  } catch (err) {
+    res.status(500).json({ error: "Error retrieving chat sessions" });
+  }
+});
+
+// Endpoint to get messages by chat session ID
+app.get("/assistant/get-session-messages/:sessionId", async (req, res) => {
+  const { sessionId } = req.params;
+  const { identifier } = req.query;
+
+  const signature = req.headers["x-request-signature"];
+
+  try {
+    const messages = await navigableAI.getMessagesBySessionId(
+      sessionId,
+      String(identifier),
+      {
+        signature,
+      }
+    );
+    if (!messages) throw new Error("Failed to get session messages");
+
+    res.status(200).json(messages);
+  } catch (err) {
+    res.status(500).json({ error: "Error retrieving session messages" });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
@@ -129,6 +170,18 @@ app.listen(port, () => {
 - **`getMessages(identifier: string, options?: IChatGetMessageOptions)`**:
 
   - Retrieves the last 20 messages from the conversation for a specific user.
+  - The `options` parameter is optional and can include:
+    - `signature`: The signature of the request if using a shared secret key (optional). Payload is the identifier.
+
+- **`listChatSessions(identifier: string, options?: IChatGetMessageOptions)`**:
+
+  - Retrieves a list of chat sessions for a specific user.
+  - The `options` parameter is optional and can include:
+    - `signature`: The signature of the request if using a shared secret key (optional). Payload is the identifier.
+
+- **`getMessagesBySessionId(sessionId: string, identifier: string, options?: IChatGetMessageOptions)`**:
+
+  - Retrieves messages from a specific chat session.
   - The `options` parameter is optional and can include:
     - `signature`: The signature of the request if using a shared secret key (optional). Payload is the identifier.
 
@@ -301,6 +354,29 @@ interface IChatGetMessageResponse {
 }
 ```
 
+### `IChatSession`
+
+```ts
+interface IChatSession {
+  id: string;
+  title: string;
+  createdAt: string; // ISO string
+  closed: boolean;
+}
+```
+
+### `IChatListSessionsResponse`
+
+```ts
+interface IChatListSessionsResponse {
+  statusCode: number;
+  success: boolean;
+  message: string;
+  errors?: Record<string, string>;
+  data: IChatSession[];
+}
+```
+
 ### License
 
 This project is licensed under the ISC License.
@@ -310,3 +386,28 @@ This project is licensed under the ISC License.
 Feel free to fork and modify the SDK according to your needs!
 
 ---
+
+## Chat Sessions
+
+### List chat sessions for a user
+
+```typescript
+import { NavigableAI } from "./src";
+
+const client = new NavigableAI("YOUR_API_KEY");
+const sessions = await client.listChatSessions("user@example.com");
+console.log(sessions);
+```
+
+### Get messages by chat session ID
+
+```typescript
+import { NavigableAI } from "./src";
+
+const client = new NavigableAI("YOUR_API_KEY");
+const messages = await client.getMessagesBySessionId(
+  "SESSION_ID",
+  "user@example.com"
+);
+console.log(messages);
+```

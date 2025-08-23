@@ -6,6 +6,6 @@ interface IEndpointParams {
     path: string;
     method: RequestMethod;
 }
-type Endpoint = "SEND_MESSAGE" | "GET_MESSAGES";
+type Endpoint = "SEND_MESSAGE" | "GET_MESSAGES" | "GET_CHAT_SESSIONS" | "GET_SESSION_MESSAGES";
 export declare const ENDPOINTS: Record<Endpoint, IEndpointParams>;
 export {};
