@@ -32,14 +32,59 @@ Once the `NavigableAI` instance is created, you can use it to send messages, ret
 ```js
 const express = require("express");
 const { NavigableAI } = require("navigableai-node");
+// CORS Middleware: Allows all origins, methods, and headers for maximum flexibility.
+// No external dependencies required. Handles preflight OPTIONS requests.
 
 const app = express();
 const port = 3000;
 
+// Custom CORS middleware to allow all origins, methods, and headers
+const corsMiddleware = (req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+  );
+  res.header(
+    "Access-Control-Allow-Headers",
+    req.headers["access-control-request-headers"] || "*"
+  );
+  res.header("Access-Control-Allow-Credentials", "true");
+  // Handle preflight OPTIONS request
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+};
+
+const loggerMiddleware = (req, res, next) => {
+  const signature = req.headers["x-request-signature"];
+  console.log(
+    JSON.stringify(
+      {
+        time: new Date().toISOString(),
+        method: req.method,
+        url: req.originalUrl,
+        signature: signature ? signature : "No signature",
+      },
+      null,
+      2
+    )
+  );
+  next();
+};
+
+// Apply CORS middleware before all routes
+app.use(corsMiddleware);
+
+app.use(loggerMiddleware);
+
+app.use(express.json());
+
 // Initialize the Navigable AI client
-const apiKey = "YOUR_API_KEY";
+const apiKey = "YOUR_API_KEY_HERE";
 const sharedSecretKey = "YOUR_SHARED_SECRET_KEY"; // Optional, but recommended for added security
-const navigableAI = new NavigableAI(apiKey, sharedSecretKey);
+const navigableAI = new NavigableAI(apiKey, sharedSecretKey); // Omit sharedSecretKey if not using it
 
 // Action Handler: Contact Support
 navigableAI.registerActionHandler("Contact Support", (uniqueId, context) => {
@@ -84,6 +129,7 @@ app.post("/assistant/send-message", express.json(), async (req, res) => {
 
     res.status(200).json(response);
   } catch (err) {
+    console.error("Error sending message:", err);
     res.status(500).json({ error: "Error sending message" });
   }
 });
@@ -102,6 +148,7 @@ app.get("/assistant/get-messages", async (req, res) => {
 
     res.status(200).json(messages);
   } catch (err) {
+    console.error("Error retrieving messages:", err);
     res.status(500).json({ error: "Error retrieving messages" });
   }
 });
@@ -118,8 +165,22 @@ app.get("/assistant/get-chat-sessions", async (req, res) => {
     });
     if (!sessions) throw new Error("Failed to get chat sessions");
 
+    console.log(
+      JSON.stringify(
+        {
+          time: new Date().toISOString(),
+          method: req.method,
+          url: req.originalUrl,
+          signature: signature ? signature : "No signature",
+          sessions,
+        },
+        null,
+        2
+      )
+    );
     res.status(200).json(sessions);
   } catch (err) {
+    console.error("Error retrieving chat sessions:", err);
     res.status(500).json({ error: "Error retrieving chat sessions" });
   }
 });
@@ -143,6 +204,7 @@ app.get("/assistant/get-session-messages/:sessionId", async (req, res) => {
 
     res.status(200).json(messages);
   } catch (err) {
+    console.error("Error retrieving session messages:", err);
     res.status(500).json({ error: "Error retrieving session messages" });
   }
 });
